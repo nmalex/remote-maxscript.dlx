@@ -18,7 +18,7 @@
     <ClCompile Include="DllMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="remoteMAXScript.cpp">
+    <ClCompile Include="remote-maxscript.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -34,12 +34,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="remoteMAXScript.def">
+    <None Include="remote-maxscript.def">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="remoteMAXScript.rc">
+    <ResourceCompile Include="remote-maxscript.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

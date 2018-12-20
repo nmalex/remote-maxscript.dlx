@@ -1,4 +1,4 @@
-LIBRARY remoteMAXScript.dlx
+LIBRARY remote-maxscript.dlx
 EXPORTS
    LibDescription       @1       PRIVATE
    LibInit              @2       PRIVATE

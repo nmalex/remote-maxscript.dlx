@@ -1,8 +1,8 @@
 // The to be #defined in a .h file included by a .rc file before maxversion.r
 
 
-#define MAXVER_INTERNALNAME "remoteMAXScript\0"//should  be overidden on a per-dll level
-#define MAXVER_ORIGINALFILENAME "remoteMAXScript.dlx\0"//should  be overidden on a per-dll level
+#define MAXVER_INTERNALNAME "remote-maxscript\0"//should  be overidden on a per-dll level
+#define MAXVER_ORIGINALFILENAME "remote-maxscript.dlx\0"//should  be overidden on a per-dll level
 #define MAXVER_FILEDESCRIPTION "Remote MAXScript Server (dlx)\0"//should  be overidden on a per-dll level
 #define MAXVER_COMMENTS "\0"//should  be overidden on a per-dll level
 
