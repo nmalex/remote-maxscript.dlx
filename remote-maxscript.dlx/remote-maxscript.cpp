@@ -204,13 +204,16 @@ DWORD WINAPI HeartbeatFunction(LPVOID lpParam) {
 		DWORDLONG totalPhysMem = memInfo.ullTotalPhys;
 		DWORDLONG physMemUsed = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
 
+		DWORD pid = GetCurrentProcessId();
+
 		auto cpuLoad = getCurrentValue();
-		int msgLen = sprintf_s(msgBuf, 1024, "{ \"id\":\"%08d\", \"mac\":\"%s\", \"port\":%d, \"cpu_usage\": %f, \"ram_usage\": %f, \"total_ram\": %f }", 
-			++heartbeatCount, 
-			mac, 
+		int msgLen = sprintf_s(msgBuf, 1024, "{ \"id\":\"%08d\", \"pid\":\"%08d\", \"mac\":\"%s\", \"port\":%d, \"cpu_usage\": %f, \"ram_usage\": %f, \"total_ram\": %f }", 
+			++heartbeatCount,
+			pid,
+			mac,
 			listenPort,
-			cpuLoad, 
-			physMemUsed/1024.0f/1024/1024, 
+			cpuLoad,
+			physMemUsed/1024.0f/1024/1024,
 			totalPhysMem/1024.0f/1024/1024);
 
 		sendUdp(destIp, HEARTBEAT_RECEIVER_PORT, msgBuf, msgLen);
