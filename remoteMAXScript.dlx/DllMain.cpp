@@ -1,0 +1,39 @@
+//DLLMain.cpp
+
+#include <maxscript/maxscript.h>
+HINSTANCE hInstance;
+
+extern void RemoteMAXScriptInit();
+static int gCounter;
+
+// ========================================================
+// Grab onto this DLL's instance handle
+BOOL WINAPI DllMain(HINSTANCE DLLhinst, DWORD fdwReason, LPVOID lpvReserved)
+{
+	switch(fdwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		MaxSDK::Util::UseLanguagePackLocale();
+		hInstance = DLLhinst;
+		DisableThreadLibraryCalls(hInstance);
+		break;
+	}
+	return TRUE;
+}
+__declspec(dllexport) void LibInit()
+{
+	//TODO: Put any code for initializing your plugin here. 
+	//In this case it is IntervalArrayInit(), which will be defined in IntervalArray.cpp,
+	//However in this example IntervalArrayInit() is empty.
+	RemoteMAXScriptInit();
+}
+__declspec(dllexport) const TCHAR* LibDescription()
+{
+	//TODO: Put code in here telling what your plugin does.
+	return _T("Remote MAXScript Server");
+}
+__declspec(dllexport) ULONG LibVersion()
+{
+	//Return the version of the Max SDK
+	return VERSION_3DSMAX;
+}
