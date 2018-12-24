@@ -207,7 +207,7 @@ DWORD WINAPI HeartbeatFunction(LPVOID lpParam) {
 		DWORD pid = GetCurrentProcessId();
 
 		auto cpuLoad = getCurrentValue();
-		int msgLen = sprintf_s(msgBuf, 1024, "{ \"id\":\"%08d\", \"pid\":\"%08d\", \"mac\":\"%s\", \"port\":%d, \"cpu_usage\": %f, \"ram_usage\": %f, \"total_ram\": %f }", 
+		int msgLen = sprintf_s(msgBuf, 1024, "{ \"id\":\"%08d\", \"type\": \"heartbeat\", \"sender\": \"remote-maxscript\" \"pid\":\"%08d\", \"mac\":\"%s\", \"port\":%d, \"cpu_usage\": %f, \"ram_usage\": %f, \"total_ram\": %f }", 
 			++heartbeatCount,
 			pid,
 			mac,
