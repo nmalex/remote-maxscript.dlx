@@ -17,9 +17,12 @@
 #include "pdh.h"
 #pragma comment(lib, "pdh.lib")
 
+#define REMOTE_MAXSCRIPT_VERSION "1.0.0.0"
+
 static PDH_HQUERY cpuQuery;
 static PDH_HCOUNTER cpuTotal;
 
+//todo: extract to some ini file
 #define HEARTBEAT_RECEIVER_PORT 3000
 
 void init() {
@@ -207,8 +210,9 @@ DWORD WINAPI HeartbeatFunction(LPVOID lpParam) {
 		DWORD pid = GetCurrentProcessId();
 
 		auto cpuLoad = getCurrentValue();
-		int msgLen = sprintf_s(msgBuf, 1024, "{\"id\":%d, \"type\":\"heartbeat\", \"sender\":\"remote-maxscript\", \"pid\":%d, \"mac\":\"%s\", \"port\":%d, \"cpu_usage\":%3.3f, \"ram_usage\":%3.3f, \"total_ram\":%3.3f }", 
+		int msgLen = sprintf_s(msgBuf, 1024, "{\"id\":%d, \"type\":\"heartbeat\", \"sender\":\"remote-maxscript\", \"version\":\"%s\" \"pid\":%d, \"mac\":\"%s\", \"port\":%d, \"cpu_usage\":%3.3f, \"ram_usage\":%3.3f, \"total_ram\":%3.3f }", 
 			++heartbeatCount,
+			REMOTE_MAXSCRIPT_VERSION,
 			pid,
 			mac,
 			listenPort,
