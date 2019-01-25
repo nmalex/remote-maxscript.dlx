@@ -7,6 +7,7 @@
 #include "maxscript.server.h"
 #include "sendudp.h"
 
+#include <locale.h>
 #include <stdio.h>
 #include <Windows.h>
 #include <Iphlpapi.h>
@@ -210,7 +211,8 @@ DWORD WINAPI HeartbeatFunction(LPVOID lpParam) {
 		DWORD pid = GetCurrentProcessId();
 
 		auto cpuLoad = getCurrentValue();
-		int msgLen = sprintf_s(msgBuf, 1024, "{\"id\":%d, \"type\":\"heartbeat\", \"sender\":\"remote-maxscript\", \"version\":\"%s\" \"pid\":%d, \"mac\":\"%s\", \"port\":%d, \"cpu_usage\":%3.3f, \"ram_usage\":%3.3f, \"total_ram\":%3.3f }", 
+		setlocale(LC_ALL, "C");
+		int msgLen = sprintf_s(msgBuf, 1024, "{\"id\":%d, \"type\":\"heartbeat\", \"sender\":\"remote-maxscript\", \"version\":\"%s\", \"pid\":%d, \"mac\":\"%s\", \"port\":%d, \"cpu_usage\":%3.3f, \"ram_usage\":%3.3f, \"total_ram\":%3.3f }",
 			++heartbeatCount,
 			REMOTE_MAXSCRIPT_VERSION,
 			pid,
