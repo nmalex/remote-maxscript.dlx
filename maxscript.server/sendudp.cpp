@@ -17,7 +17,7 @@ const char* getTimestampStr() {
 	return timestamp;
 }
 
-int sendUdp(const char* host, unsigned short port, const char* buf, int len) {
+int sendUdp(LPSTR host, USHORT port, const BYTE* buf, int len) {
 	int iResult;
 	WSADATA wsaData;
 
@@ -40,6 +40,7 @@ int sendUdp(const char* host, unsigned short port, const char* buf, int len) {
 		WSACleanup();
 		return 1;
 	}
+
 	//---------------------------------------------
 	// Set up the RecvAddr structure with the IP address of
 	// the receiver (in this example case "192.168.1.1")
@@ -50,7 +51,6 @@ int sendUdp(const char* host, unsigned short port, const char* buf, int len) {
 
 	//---------------------------------------------
 	// Send a datagram to the receiver
-	//wprintf(L"Sending a datagram to the receiver...\n");
 	iResult = sendto(SendSocket,
 		buf, len, 0, (SOCKADDR *)& RecvAddr, sizeof(RecvAddr));
 	if (iResult == SOCKET_ERROR) {
@@ -59,6 +59,7 @@ int sendUdp(const char* host, unsigned short port, const char* buf, int len) {
 		WSACleanup();
 		return 1;
 	}
+
 	//---------------------------------------------
 	// When the application is finished sending, close the socket.
 	//wprintf(L"Finished sending. Closing socket.\n");
@@ -68,6 +69,7 @@ int sendUdp(const char* host, unsigned short port, const char* buf, int len) {
 		WSACleanup();
 		return 1;
 	}
+
 	//---------------------------------------------
 	// Clean up and quit.
 	//wprintf(L"Exiting.\n");

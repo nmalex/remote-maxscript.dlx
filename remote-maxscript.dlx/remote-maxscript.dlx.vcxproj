@@ -73,10 +73,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="heartbeat.cpp" />
     <ClCompile Include="remote-maxscript.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassCfg.h" />
+    <ClInclude Include="heartbeat.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="veroverrides.h" />
   </ItemGroup>
