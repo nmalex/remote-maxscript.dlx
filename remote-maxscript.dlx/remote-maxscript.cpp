@@ -18,7 +18,7 @@
 #include "pdh.h"
 #pragma comment(lib, "pdh.lib")
 
-#define REMOTE_MAXSCRIPT_VERSION "1.0.1.0"
+#define REMOTE_MAXSCRIPT_VERSION "1.0.2.0"
 
 static PDH_HQUERY cpuQuery;
 static PDH_HCOUNTER cpuTotal;
@@ -123,6 +123,7 @@ typedef struct MyData {
 typedef struct HeartbeatParams {
 	int listenPort;
 	const char* destIp;
+	int destPort;
 	const char* workgroup;
 } HEARTBEAPARAMS, *PHEARTBEAPARAMS;
 
@@ -195,6 +196,7 @@ DWORD WINAPI HeartbeatFunction(LPVOID lpParam) {
 
 	int listenPort = pDataArray->listenPort;
 	const char* destIp = pDataArray->destIp;
+	int destPort = pDataArray->destPort;
 	const char* workgroup = pDataArray->workgroup;
 
 	init();
@@ -225,7 +227,7 @@ DWORD WINAPI HeartbeatFunction(LPVOID lpParam) {
 			physMemUsed/1024.0f/1024/1024,
 			totalPhysMem/1024.0f/1024/1024);
 
-		sendUdp(destIp, HEARTBEAT_RECEIVER_PORT, msgBuf, msgLen);
+		sendUdp(destIp, destPort, msgBuf, msgLen);
 
 		Sleep(1000);
 	}
@@ -361,7 +363,7 @@ void handleTimerFunc(HWND hwnd, UINT param1, UINT_PTR param2, DWORD param3)
 	def_visible_primitive(threejsApiStart, "threejsApiStart");
 	def_visible_primitive(threejsApiStop, "threejsApiStop");
 
-bool StartHeartbeatThread(int listenPort, const char* destIp, const char* workgroup) {
+bool StartHeartbeatThread(int listenPort, const char* destIp, int destPort, const char* workgroup) {
 
 	PHEARTBEAPARAMS pDataArray = (PHEARTBEAPARAMS)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(HEARTBEAPARAMS));
 
@@ -375,6 +377,7 @@ bool StartHeartbeatThread(int listenPort, const char* destIp, const char* workgr
 
 	// Generate unique data for each thread to work with.
 	pDataArray->destIp = destIp;
+	pDataArray->destPort = destPort;
 	pDataArray->listenPort = listenPort;
 	pDataArray->workgroup = workgroup;
 
@@ -441,33 +444,37 @@ Value* threejsApiStart_cf(Value **arg_list, int count)
 		return &false_value;
 	}
 
-	check_arg_count(cmdexRun2, 3, count);
+	check_arg_count(cmdexRun2, 4, count);
 	Value* pListenPort = arg_list[0];
 	Value* pDestIp = arg_list[1];
-	Value* pWorkgroup = arg_list[2];
+	Value* pDestPort = arg_list[2];
+	Value* pWorkgroup = arg_list[3];
 
-	//First example of how to type check an argument
 	if (!(is_number(pListenPort)))
 	{
-		throw RuntimeError(_T("Expected a Number for the first argument pListenPort"));
+		throw RuntimeError(_T("Expected a Number for the first argument pListenPort, - maxscript will accept commands on this port"));
 	}
 
-	//First example of how to type check an argument
 	if (!(is_string(pDestIp)))
 	{
-		throw RuntimeError(_T("Expected a String for the second argument pDestIp"));
+		throw RuntimeError(_T("Expected a String for the second argument pDestIp, - the IP address of backend heartbeat listener"));
 	}
 
-	//First example of how to type check an argument
+	if (!(is_number(pDestPort)))
+	{
+		throw RuntimeError(_T("Expected a Number for the third argument pDestPort, - the port of hearbeat listener"));
+	}
+
 	if (!(is_string(pWorkgroup)))
 	{
-		throw RuntimeError(_T("Expected a String for the third argument pWorkgroup"));
+		throw RuntimeError(_T("Expected a String for the 4th argument pWorkgroup"));
 	}
 
 	heartbeatCount = 0;
 	serviceRunning = true;
 
 	int listenPort = pListenPort->to_int();
+	int destPort = pDestPort->to_int();
 
 	if (!StartServerThread(listenPort)) {
 		serviceRunning = false;
@@ -482,7 +489,7 @@ Value* threejsApiStart_cf(Value **arg_list, int count)
 	char* workgroup = new char[256];
 	wcstombs(workgroup, wWorkgroup, 256);
 
-	if (!StartHeartbeatThread(listenPort, destIp, workgroup)) {
+	if (!StartHeartbeatThread(listenPort, destIp, destPort, workgroup)) {
 		server.Close();
 		serviceRunning = false;
 		return &false_value;
