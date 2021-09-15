@@ -18,7 +18,7 @@
 #include "pdh.h"
 #pragma comment(lib, "pdh.lib")
 
-#define REMOTE_MAXSCRIPT_VERSION "1.0.2.0"
+#define REMOTE_MAXSCRIPT_VERSION "1.0.3.0"
 
 static PDH_HQUERY cpuQuery;
 static PDH_HCOUNTER cpuTotal;
@@ -125,6 +125,7 @@ typedef struct HeartbeatParams {
 	const char* destIp;
 	int destPort;
 	const char* workgroup;
+	const char* externalIp;
 } HEARTBEAPARAMS, *PHEARTBEAPARAMS;
 
 const char* getFileContents(const char* filename) {
@@ -198,6 +199,7 @@ DWORD WINAPI HeartbeatFunction(LPVOID lpParam) {
 	const char* destIp = pDataArray->destIp;
 	int destPort = pDataArray->destPort;
 	const char* workgroup = pDataArray->workgroup;
+	const char* externalIp = pDataArray->externalIp;
 
 	init();
 	auto mac = getMAC();
@@ -216,12 +218,13 @@ DWORD WINAPI HeartbeatFunction(LPVOID lpParam) {
 
 		auto cpuLoad = getCurrentValue();
 		setlocale(LC_ALL, "C");
-		int msgLen = sprintf_s(msgBuf, 1024, "{\"id\":%d, \"type\":\"heartbeat\", \"sender\":\"remote-maxscript\", \"version\":\"%s\", \"workgroup\": \"%s\", \"pid\":%d, \"mac\":\"%s\", \"port\":%d, \"cpu_usage\":%3.3f, \"ram_usage\":%3.3f, \"total_ram\":%3.3f }",
+		int msgLen = sprintf_s(msgBuf, 1024, "{\"id\":%d, \"type\":\"heartbeat\", \"sender\":\"remote-maxscript\", \"version\":\"%s\", \"workgroup\": \"%s\", \"pid\":%d, \"mac\":\"%s\", \"external_ip\":\"%s\", \"port\":%d, \"cpu_usage\":%3.3f, \"ram_usage\":%3.3f, \"total_ram\":%3.3f }",
 			++heartbeatCount,
 			REMOTE_MAXSCRIPT_VERSION,
 			workgroup,
 			pid,
 			mac,
+			externalIp,
 			listenPort,
 			cpuLoad,
 			physMemUsed/1024.0f/1024/1024,
@@ -363,7 +366,7 @@ void handleTimerFunc(HWND hwnd, UINT param1, UINT_PTR param2, DWORD param3)
 	def_visible_primitive(threejsApiStart, "threejsApiStart");
 	def_visible_primitive(threejsApiStop, "threejsApiStop");
 
-bool StartHeartbeatThread(int listenPort, const char* destIp, int destPort, const char* workgroup) {
+bool StartHeartbeatThread(const char* externalIp, int listenPort, const char* destIp, int destPort, const char* workgroup) {
 
 	PHEARTBEAPARAMS pDataArray = (PHEARTBEAPARAMS)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(HEARTBEAPARAMS));
 
@@ -376,6 +379,7 @@ bool StartHeartbeatThread(int listenPort, const char* destIp, int destPort, cons
 	}
 
 	// Generate unique data for each thread to work with.
+	pDataArray->externalIp = externalIp;
 	pDataArray->destIp = destIp;
 	pDataArray->destPort = destPort;
 	pDataArray->listenPort = listenPort;
@@ -444,34 +448,44 @@ Value* threejsApiStart_cf(Value **arg_list, int count)
 		return &false_value;
 	}
 
-	check_arg_count(cmdexRun2, 4, count);
-	Value* pListenPort = arg_list[0];
-	Value* pDestIp = arg_list[1];
-	Value* pDestPort = arg_list[2];
-	Value* pWorkgroup = arg_list[3];
+	check_arg_count(cmdexRun2, 5, count);
+	Value* pExternalIp = arg_list[0];
+	Value* pListenPort = arg_list[1];
+	Value* pDestIp = arg_list[2];
+	Value* pDestPort = arg_list[3];
+	Value* pWorkgroup = arg_list[4];
+
+	if (!(is_string(pExternalIp)))
+	{
+		throw RuntimeError(_T("Expected a String for the 1st argument pWorkgroup"));
+	}
 
 	if (!(is_number(pListenPort)))
 	{
-		throw RuntimeError(_T("Expected a Number for the first argument pListenPort, - maxscript will accept commands on this port"));
+		throw RuntimeError(_T("Expected a Number for the 2nd argument pListenPort, - maxscript will accept commands on this port"));
 	}
 
 	if (!(is_string(pDestIp)))
 	{
-		throw RuntimeError(_T("Expected a String for the second argument pDestIp, - the IP address of backend heartbeat listener"));
+		throw RuntimeError(_T("Expected a String for the 3rd argument pDestIp, - the IP address of backend heartbeat listener"));
 	}
 
 	if (!(is_number(pDestPort)))
 	{
-		throw RuntimeError(_T("Expected a Number for the third argument pDestPort, - the port of hearbeat listener"));
+		throw RuntimeError(_T("Expected a Number for the 4th argument pDestPort, - the port of hearbeat listener"));
 	}
 
 	if (!(is_string(pWorkgroup)))
 	{
-		throw RuntimeError(_T("Expected a String for the 4th argument pWorkgroup"));
+		throw RuntimeError(_T("Expected a String for the 5th argument pWorkgroup"));
 	}
 
 	heartbeatCount = 0;
 	serviceRunning = true;
+
+	const wchar_t* wExternalIp = pExternalIp->to_string();
+	char* externalIp = new char[256];
+	wcstombs(externalIp, wExternalIp, 256);
 
 	int listenPort = pListenPort->to_int();
 	int destPort = pDestPort->to_int();
@@ -489,7 +503,7 @@ Value* threejsApiStart_cf(Value **arg_list, int count)
 	char* workgroup = new char[256];
 	wcstombs(workgroup, wWorkgroup, 256);
 
-	if (!StartHeartbeatThread(listenPort, destIp, destPort, workgroup)) {
+	if (!StartHeartbeatThread(externalIp, listenPort, destIp, destPort, workgroup)) {
 		server.Close();
 		serviceRunning = false;
 		return &false_value;

@@ -30,7 +30,7 @@
     <Import Project="$(MaxSDK)\ProjectSettings\PropertySheets\3dsmax.cpp.props" />
   </ImportGroup>
   <PropertyGroup>
-    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <ProjectFileVersion>10.0.30319.1</ProjectFileVersion>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <TargetName>remote-maxscript</TargetName>
     <TargetExt>.dlx</TargetExt>
